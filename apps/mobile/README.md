@@ -1,6 +1,6 @@
 # SVTC Mobile App
 
-Android application for students.
+Android application for students, built with Kotlin and Jetpack Compose.
 
 ## MVP Scope
 
@@ -20,5 +20,15 @@ Android application for students.
 
 ## Setup
 
-Add Android project files here after choosing the mobile stack.
+This folder now contains the initial Android project skeleton with mock data for the main MVP screens.
 
+To open it:
+
+1. Open Android Studio.
+2. Choose **Open**.
+3. Select the `apps/mobile` folder.
+4. Wait for Gradle sync to finish.
+5. Choose an emulator or Android device.
+6. Press **Run**.
+
+Do not commit `local.properties`. Android Studio creates it locally to point to the Android SDK path on each developer machine.
