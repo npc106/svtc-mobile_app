@@ -18,23 +18,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.svtc.mobile.data.SessionItem
 import com.svtc.mobile.data.SessionStatus
+import com.svtc.mobile.data.UiState
 import com.svtc.mobile.ui.components.BrandHeader
 import com.svtc.mobile.ui.components.ScreenList
 import com.svtc.mobile.ui.components.SectionTitle
+import com.svtc.mobile.ui.components.StateContent
 import com.svtc.mobile.ui.components.StatusBadge
 
 @Composable
-fun SessionDetailScreen(session: SessionItem?, onBack: () -> Unit) {
-    ScreenList {
-        BrandHeader(title = "Chi tiết buổi học", subtitle = "SVTC")
-        if (session == null) {
-            Text("Không tìm thấy buổi học.", color = MaterialTheme.colorScheme.error)
-            Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                Text("Quay lại")
-            }
-            return@ScreenList
-        }
-
+fun SessionDetailScreen(sessionState: UiState<SessionItem>, onBack: () -> Unit) {
+    StateContent(state = sessionState) { session ->
+        ScreenList {
+            BrandHeader(title = "Chi tiết buổi học", subtitle = "SVTC")
         Card(shape = RoundedCornerShape(8.dp)) {
             Column(
                 modifier = Modifier
@@ -66,6 +61,7 @@ fun SessionDetailScreen(session: SessionItem?, onBack: () -> Unit) {
             contentPadding = PaddingValues(vertical = 14.dp)
         ) {
             Text("Quay lại")
+        }
         }
     }
 }

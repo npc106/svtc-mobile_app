@@ -1,0 +1,389 @@
+openapi: 3.0.3
+info:
+  title: SVTC Mobile MVP API
+  version: 0.1.0
+  description: Mobile-facing API contract draft. This file does not create or require a database.
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development
+paths:
+  /auth/google:
+    post:
+      summary: Verify Google token and create a student session
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken, deviceId]
+              properties:
+                idToken:
+                  type: string
+                deviceId:
+                  type: string
+                pushToken:
+                  type: string
+      responses:
+        "200":
+          description: Student session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Google token invalid or email not active
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      tags: [Authentication]
+      responses:
+        "200":
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/logout:
+    post:
+      summary: Revoke current session
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Logged out
+  /me:
+    get:
+      summary: Get current student profile
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Student profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentProfile"
+  /me/dashboard:
+    get:
+      summary: Get home dashboard
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /me/preferences:
+    patch:
+      summary: Update notification preferences
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Preferences updated
+  /me/devices/{deviceId}:
+    put:
+      summary: Register Android push token
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/deviceId"
+      responses:
+        "204":
+          description: Device registered
+  /me/classes:
+    get:
+      summary: List current student classes
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Student classes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClassItem"
+  /me/sessions:
+    get:
+      summary: List current student sessions
+      tags: [Sessions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: classId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Sessions visible to the current student
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SessionItem"
+  /me/sessions/{sessionId}:
+    get:
+      summary: Get session detail
+      tags: [Sessions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/sessionId"
+      responses:
+        "200":
+          description: Session detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionItem"
+        "404":
+          description: Session not found or not visible
+  /me/notifications:
+    get:
+      summary: List in-app notifications
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPage"
+  /me/notifications/unread-count:
+    get:
+      summary: Count unread notifications
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count]
+                properties:
+                  count:
+                    type: integer
+  /me/notifications/{notificationId}/read:
+    patch:
+      summary: Mark notification as read
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/notificationId"
+      responses:
+        "204":
+          description: Notification marked as read
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    deviceId:
+      name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+    sessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+    notificationId:
+      name: notificationId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    AuthResponse:
+      type: object
+      required: [accessToken, refreshToken, student]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        student:
+          $ref: "#/components/schemas/StudentProfile"
+    StudentProfile:
+      type: object
+      required: [id, fullName, email, notificationPreferences, support]
+      properties:
+        id:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          nullable: true
+        notificationPreferences:
+          type: object
+          required: [reminderNotificationsEnabled, generalNotificationsEnabled]
+          properties:
+            reminderNotificationsEnabled:
+              type: boolean
+            generalNotificationsEnabled:
+              type: boolean
+        support:
+          type: object
+          required: [hotline, email]
+          properties:
+            hotline:
+              type: string
+            email:
+              type: string
+              format: email
+    Dashboard:
+      type: object
+      required: [studentName, classes, unreadNotifications]
+      properties:
+        studentName:
+          type: string
+        upcomingSession:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/SessionItem"
+        classes:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClassItem"
+        unreadNotifications:
+          type: integer
+    ClassItem:
+      type: object
+      required: [id, code, name, status]
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        name:
+          type: string
+        instructorName:
+          type: string
+        status:
+          type: string
+          enum: [active, completed, cancelled]
+    SessionItem:
+      type: object
+      required: [id, classId, className, title, startAt, endAt, instructorName, deliveryMode, status]
+      properties:
+        id:
+          type: string
+        classId:
+          type: string
+        className:
+          type: string
+        title:
+          type: string
+        startAt:
+          type: string
+          format: date-time
+          description: Stored in UTC.
+        endAt:
+          type: string
+          format: date-time
+          description: Stored in UTC.
+        previousStartAt:
+          type: string
+          format: date-time
+          nullable: true
+        previousEndAt:
+          type: string
+          format: date-time
+          nullable: true
+        instructorName:
+          type: string
+        deliveryMode:
+          type: string
+          enum: [onsite, online]
+        location:
+          type: string
+          nullable: true
+        room:
+          type: string
+          nullable: true
+        meetingUrl:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [scheduled, rescheduled, cancelled, completed]
+        changeReason:
+          type: string
+          nullable: true
+    NotificationItem:
+      type: object
+      required: [id, type, title, body, createdAt, read]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [session_reminder, session_rescheduled, session_cancelled, class_announcement]
+        title:
+          type: string
+        body:
+          type: string
+        sessionId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        read:
+          type: boolean
+    NotificationPage:
+      type: object
+      required: [items, page, hasNextPage]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationItem"
+        page:
+          type: integer
+        hasNextPage:
+          type: boolean

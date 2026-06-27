@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import com.svtc.mobile.data.sampleSessions
+import com.svtc.mobile.data.MockStudentRepository
 import com.svtc.mobile.ui.components.MainBottomBar
 import com.svtc.mobile.ui.screens.AccountScreen
 import com.svtc.mobile.ui.screens.HomeScreen
@@ -37,6 +37,7 @@ private sealed interface AppRoute {
 fun SVTCApp() {
     var route by remember { mutableStateOf<AppRoute>(AppRoute.Login) }
     var selectedTab by remember { mutableStateOf(MainTab.Home) }
+    val repository = remember { MockStudentRepository() }
 
     when (val currentRoute = route) {
         AppRoute.Login -> LoginScreen(onLoginClick = { route = AppRoute.Main })
@@ -56,20 +57,30 @@ fun SVTCApp() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     when (selectedTab) {
-                        MainTab.Home -> HomeScreen(onSessionClick = { route = AppRoute.SessionDetail(it) })
-                        MainTab.Schedule -> ScheduleScreen(onSessionClick = { route = AppRoute.SessionDetail(it) })
-                        MainTab.Notifications -> NotificationsScreen(onNotificationClick = { sessionId ->
+                        MainTab.Home -> HomeScreen(
+                            dashboardState = repository.dashboard(),
+                            onSessionClick = { route = AppRoute.SessionDetail(it) }
+                        )
+                        MainTab.Schedule -> ScheduleScreen(
+                            sessionsState = repository.sessions(),
+                            onSessionClick = { route = AppRoute.SessionDetail(it) }
+                        )
+                        MainTab.Notifications -> NotificationsScreen(
+                            notificationsState = repository.notifications(),
+                            onNotificationClick = { sessionId ->
                             route = sessionId?.let(AppRoute::SessionDetail) ?: AppRoute.Main
                         })
-                        MainTab.Account -> AccountScreen(onLogout = { route = AppRoute.Login })
+                        MainTab.Account -> AccountScreen(
+                            profileState = repository.profile(),
+                            onLogout = { route = AppRoute.Login }
+                        )
                     }
                 }
             }
         }
         is AppRoute.SessionDetail -> {
-            val session = sampleSessions.firstOrNull { it.id == currentRoute.sessionId }
             SessionDetailScreen(
-                session = session,
+                sessionState = repository.sessionDetail(currentRoute.sessionId),
                 onBack = { route = AppRoute.Main }
             )
         }

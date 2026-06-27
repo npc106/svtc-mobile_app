@@ -36,7 +36,71 @@ data class NotificationItem(
     val unread: Boolean = true
 )
 
-val sampleSessions = listOf(
+data class DashboardData(
+    val studentName: String,
+    val upcomingSession: SessionItem?,
+    val classes: List<ClassItem>,
+    val unreadNotifications: Int
+)
+
+data class StudentProfile(
+    val fullName: String,
+    val email: String,
+    val phone: String,
+    val hotline: String,
+    val supportEmail: String
+)
+
+sealed interface UiState<out T> {
+    data object Loading : UiState<Nothing>
+    data class Empty(val message: String) : UiState<Nothing>
+    data class Error(val message: String) : UiState<Nothing>
+    data class Success<T>(val data: T) : UiState<T>
+}
+
+interface StudentRepository {
+    fun dashboard(): UiState<DashboardData>
+    fun sessions(): UiState<List<SessionItem>>
+    fun sessionDetail(sessionId: String): UiState<SessionItem>
+    fun notifications(): UiState<List<NotificationItem>>
+    fun profile(): UiState<StudentProfile>
+}
+
+class MockStudentRepository : StudentRepository {
+    override fun dashboard(): UiState<DashboardData> = UiState.Success(
+        DashboardData(
+            studentName = sampleProfile.fullName,
+            upcomingSession = sampleSessions.firstOrNull(),
+            classes = sampleClasses,
+            unreadNotifications = sampleNotifications.count { it.unread }
+        )
+    )
+
+    override fun sessions(): UiState<List<SessionItem>> = sampleSessions.toListState("Chưa có lịch học.")
+
+    override fun sessionDetail(sessionId: String): UiState<SessionItem> {
+        val session = sampleSessions.firstOrNull { it.id == sessionId }
+        return if (session == null) UiState.Error("Không tìm thấy buổi học.") else UiState.Success(session)
+    }
+
+    override fun notifications(): UiState<List<NotificationItem>> =
+        sampleNotifications.toListState("Chưa có thông báo.")
+
+    override fun profile(): UiState<StudentProfile> = UiState.Success(sampleProfile)
+}
+
+private fun <T> List<T>.toListState(emptyMessage: String): UiState<List<T>> =
+    if (isEmpty()) UiState.Empty(emptyMessage) else UiState.Success(this)
+
+private val sampleProfile = StudentProfile(
+    fullName = "Nguyễn Văn A",
+    email = "hocvien@example.com",
+    phone = "0900 000 000",
+    hotline = "đang cập nhật",
+    supportEmail = "support@svtc.example"
+)
+
+private val sampleSessions = listOf(
     SessionItem(
         id = "session-001",
         title = "Kỹ năng giao tiếp buổi 05",
@@ -72,12 +136,12 @@ val sampleSessions = listOf(
     )
 )
 
-val sampleClasses = listOf(
+private val sampleClasses = listOf(
     ClassItem("SVTC-KNGT-01", "Kỹ năng giao tiếp", "12 buổi - tại trung tâm"),
     ClassItem("SVTC-THUD-02", "Tin học ứng dụng", "8 buổi - online")
 )
 
-val sampleNotifications = listOf(
+private val sampleNotifications = listOf(
     NotificationItem(
         id = "noti-001",
         type = "Đổi lịch",

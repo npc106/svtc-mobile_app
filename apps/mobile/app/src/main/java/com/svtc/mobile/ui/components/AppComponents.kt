@@ -22,6 +22,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,6 +35,7 @@ import com.svtc.mobile.data.ClassItem
 import com.svtc.mobile.data.NotificationItem
 import com.svtc.mobile.data.SessionItem
 import com.svtc.mobile.data.SessionStatus
+import com.svtc.mobile.data.UiState
 import com.svtc.mobile.ui.MainTab
 
 @Composable
@@ -60,6 +62,32 @@ fun ScreenList(content: @Composable ColumnScope.() -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
         content = content
     )
+}
+
+@Composable
+fun <T> StateContent(
+    state: UiState<T>,
+    onRetry: () -> Unit = {},
+    content: @Composable (T) -> Unit
+) {
+    when (state) {
+        UiState.Loading -> ScreenList {
+            BrandHeader(title = "Đang tải", subtitle = "SVTC")
+            Text("Vui lòng chờ trong giây lát.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        is UiState.Empty -> ScreenList {
+            BrandHeader(title = "Chưa có dữ liệu", subtitle = "SVTC")
+            Text(state.message, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        is UiState.Error -> ScreenList {
+            BrandHeader(title = "Có lỗi xảy ra", subtitle = "SVTC")
+            Text(state.message, color = MaterialTheme.colorScheme.error)
+            OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
+                Text("Thử lại")
+            }
+        }
+        is UiState.Success -> content(state.data)
+    }
 }
 
 @Composable

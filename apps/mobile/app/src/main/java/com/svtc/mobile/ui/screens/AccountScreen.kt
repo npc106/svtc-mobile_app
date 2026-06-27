@@ -21,37 +21,42 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.svtc.mobile.data.StudentProfile
+import com.svtc.mobile.data.UiState
 import com.svtc.mobile.ui.components.BrandHeader
 import com.svtc.mobile.ui.components.ScreenList
+import com.svtc.mobile.ui.components.StateContent
 
 @Composable
-fun AccountScreen(onLogout: () -> Unit) {
+fun AccountScreen(profileState: UiState<StudentProfile>, onLogout: () -> Unit) {
     var remindersEnabled by remember { mutableStateOf(true) }
     var generalEnabled by remember { mutableStateOf(true) }
 
-    ScreenList {
-        BrandHeader(title = "Tài khoản", subtitle = "Hồ sơ và hỗ trợ")
-        ProfileBlock()
-        SettingRow("Nhắc lịch học", remindersEnabled) { remindersEnabled = it }
-        SettingRow("Thông báo chung", generalEnabled) { generalEnabled = it }
-        SupportBlock()
-        Button(
-            onClick = onLogout,
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(vertical = 14.dp)
-        ) {
-            Text("Đăng xuất")
+    StateContent(state = profileState) { profile ->
+        ScreenList {
+            BrandHeader(title = "Tài khoản", subtitle = "Hồ sơ và hỗ trợ")
+            ProfileBlock(profile)
+            SettingRow("Nhắc lịch học", remindersEnabled) { remindersEnabled = it }
+            SettingRow("Thông báo chung", generalEnabled) { generalEnabled = it }
+            SupportBlock(profile)
+            Button(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(vertical = 14.dp)
+            ) {
+                Text("Đăng xuất")
+            }
         }
     }
 }
 
 @Composable
-private fun ProfileBlock() {
+private fun ProfileBlock(profile: StudentProfile) {
     Card(shape = RoundedCornerShape(8.dp)) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Nguyễn Văn A", fontWeight = FontWeight.Bold)
-            Text("hocvien@example.com")
-            Text("0900 000 000")
+            Text(profile.fullName, fontWeight = FontWeight.Bold)
+            Text(profile.email)
+            Text(profile.phone)
         }
     }
 }
@@ -72,12 +77,12 @@ private fun SettingRow(label: String, checked: Boolean, onCheckedChange: (Boolea
 }
 
 @Composable
-private fun SupportBlock() {
+private fun SupportBlock(profile: StudentProfile) {
     Card(shape = RoundedCornerShape(8.dp)) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Hỗ trợ SVTC", fontWeight = FontWeight.Bold)
-            Text("Hotline: đang cập nhật")
-            Text("Email: support@svtc.example")
+            Text("Hotline: ${profile.hotline}")
+            Text("Email: ${profile.supportEmail}")
         }
     }
 }

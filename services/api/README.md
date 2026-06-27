@@ -2,6 +2,14 @@
 
 Backend API for the SVTC MVP system.
 
+## Current Status
+
+This folder currently contains an API contract draft only. No database, migration, or backend runtime has been created yet.
+
+Files:
+
+- `openapi.yaml`: mobile-facing API contract draft for authentication, profile, dashboard, classes, sessions, devices, and notifications.
+
 ## MVP Scope
 
 - Google authentication verification for students.
@@ -22,3 +30,4 @@ Backend API for the SVTC MVP system.
 
 Add backend service files here after choosing the API stack.
 
+Do not add database migrations or schema files until the database design is confirmed.

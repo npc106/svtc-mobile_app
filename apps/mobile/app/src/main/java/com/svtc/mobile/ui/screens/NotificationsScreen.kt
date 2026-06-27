@@ -1,20 +1,27 @@
 package com.svtc.mobile.ui.screens
 
 import androidx.compose.runtime.Composable
-import com.svtc.mobile.data.sampleNotifications
+import com.svtc.mobile.data.NotificationItem
+import com.svtc.mobile.data.UiState
 import com.svtc.mobile.ui.components.BrandHeader
 import com.svtc.mobile.ui.components.NotificationRow
 import com.svtc.mobile.ui.components.ScreenList
+import com.svtc.mobile.ui.components.StateContent
 
 @Composable
-fun NotificationsScreen(onNotificationClick: (String?) -> Unit) {
-    ScreenList {
-        BrandHeader(
-            title = "Thông báo",
-            subtitle = "${sampleNotifications.count { it.unread }} chưa đọc"
-        )
-        sampleNotifications.forEach { item ->
-            NotificationRow(item = item, onClick = onNotificationClick)
+fun NotificationsScreen(
+    notificationsState: UiState<List<NotificationItem>>,
+    onNotificationClick: (String?) -> Unit
+) {
+    StateContent(state = notificationsState) { notifications ->
+        ScreenList {
+            BrandHeader(
+                title = "Thông báo",
+                subtitle = "${notifications.count { it.unread }} chưa đọc"
+            )
+            notifications.forEach { item ->
+                NotificationRow(item = item, onClick = onNotificationClick)
+            }
         }
     }
 }
