@@ -32,3 +32,14 @@ To open it:
 6. Press **Run**.
 
 Do not commit `local.properties`. Android Studio creates it locally to point to the Android SDK path on each developer machine.
+
+## Command Line
+
+Use the checked-in Gradle wrapper from this folder:
+
+```powershell
+.\gradlew.bat :app:assembleDebug
+.\gradlew.bat :app:lintDebug
+```
+
+If command-line builds use the wrong Java version, run them with the JBR bundled with Android Studio. Android Studio itself normally handles this automatically.
